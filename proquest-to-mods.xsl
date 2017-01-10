@@ -156,16 +156,16 @@
 		<xsl:variable name="normalizedDegree" select="translate(translate(/DISS_submission/DISS_description/DISS_degree, $uppercase, $smallcase), '.', '')"/>
 		<mods:note displayLabel="Degree">
 			<xsl:choose>
-				<xsl:when test="contains($normalizedDegree, 'ma')">Master of Arts</xsl:when>
-				<xsl:when test="contains($normalizedDegree, 'ms')">Master of Science</xsl:when>
 				<xsl:when test="contains($normalizedDegree, 'edd')">Doctor of Education</xsl:when>
 				<xsl:when test="contains($normalizedDegree, 'phd')">Doctor of Philosophy</xsl:when>
-				<xsl:when test="contains($normalizedDegree, 'drph')">Doctor of Public Health</xsl:when>
+				<xsl:when test="contains($normalizedDegree, 'dmin')">Doctor of Ministry</xsl:when>
+				<xsl:when test="contains($normalizedDegree, 'thm')">Master of Theology</xsl:when>
 			</xsl:choose>
 		</mods:note>
 		<mods:genre authority="local">
 			<xsl:choose>
-				<xsl:when test="contains($normalizedDegree, 'edd') or contains($normalizedDegree, 'phd') or contains($normalizedDegree, 'drph')">Dissertation</xsl:when>
+				<xsl:when test="contains($normalizedDegree, 'edd') or contains($normalizedDegree, 'phd')">Dissertation</xsl:when>
+				<xsl:when test="contains($normalizedDegree, 'dmin')">Ministry Project Report</xsl:when>
 				<xsl:otherwise>Thesis</xsl:otherwise>
 			</xsl:choose>
 		</mods:genre>
@@ -203,7 +203,8 @@
 					</mods:role>
 				</mods:name>
 			</xsl:for-each>
-			<xsl:for-each select="DISS_cmte_member/DISS_name">
+			<!--  01/10/2017 Section below controls Dissertation Committee Members. Uncomment add them back in. -->
+			<!-- <xsl:for-each select="DISS_cmte_member/DISS_name">
 				<mods:name type="personal">
 					<mods:namePart type="given">
 						<xsl:value-of select="DISS_fname"/>
@@ -216,7 +217,7 @@
 					</mods:role>
 				</mods:name>
 			</xsl:for-each>
-		</xsl:for-each>
+		</xsl:for-each> -->
 		<!-- TYPE OF RESOURCE AND EXTENT: MODS:TYPE OF RESOURCE and MODS:PHYSICAL DESCRIPTION -->
 		<mods:typeOfResource>text</mods:typeOfResource>
 		<!--RESTRICTIONS AND ACCESS: MODS:ACCESSCONDITION-->

@@ -12,7 +12,9 @@ mv *.zip zips
 # Convert ProQuest XML files to MODS
 for file in *.xml; do 
 	newfile=$(echo "$file" | sed "s/_DATA//g")
-	xsltproc proquest-to-mods.xsl  $file > "$newfile"
+#	xsltproc proquest-to-mods.xsl  $file > "$newfile"
+	java -cp saxon9he.jar net.sf.saxon.Transform -s:$file -xsl:proquest-to-mods.xsl -o:$newfile
+
 done
 
 #Remove ProQuest XML files
@@ -25,5 +27,6 @@ mv *.xml "$filename"
 mv *.pdf "$filename"
 zip "$filename.zip" $filename/*
 
-
+echo "The script was successful"
+exit 0
 	

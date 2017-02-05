@@ -1,39 +1,40 @@
-<xsl:stylesheet xmlns:mods="http://www.loc.gov/mods/v3" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" exclude-result-prefixes="xlink" version="1.0">
+<xsl:stylesheet xmlns:mods="http://www.loc.gov/mods/v3" xmlns:xlink="http://www.w3.org/1999/xlink"
+	xmlns:xsl="http://www.w3.org/1999/XSL/Transform" exclude-result-prefixes="xlink" version="2.0">
 	<xsl:output encoding="UTF-8" indent="yes" method="xml" standalone="yes"/>
 	<!-- top level elements ELEMENT DISS_description (DISS_title,DISS_dates,DISS_degree,(DISS_institution),(DISS_advisor)*,DISS_cmte_member*,DISS_categorization)>
     -->
 	<xsl:include href="iso-639-1-to-639-2b.xsl"/>
-	
-	<xsl:param name="graduationSemester" />
-	
-	<xsl:variable name="smallcase" select="'abcdefghijklmnopqrstuvwxyz'" />
-	<xsl:variable name="uppercase" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZ'" />
-	
+
+	<xsl:param name="graduationSemester"/>
+
+	<xsl:variable name="smallcase" select="'abcdefghijklmnopqrstuvwxyz'"/>
+	<xsl:variable name="uppercase" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZ'"/>
+
 	<xsl:template name="replace">
-		<xsl:param name="text" />
-		<xsl:param name="replace" />
-		<xsl:param name="by" />
+		<xsl:param name="text"/>
+		<xsl:param name="replace"/>
+		<xsl:param name="by"/>
 		<xsl:choose>
-		  <xsl:when test="contains($text, $replace)">
-		    <xsl:value-of select="substring-before($text,$replace)" />
-		    <xsl:value-of select="$by" />
-		    <xsl:call-template name="replace">
-		      <xsl:with-param name="text"
-		      select="substring-after($text,$replace)" />
-		      <xsl:with-param name="replace" select="$replace" />
-		      <xsl:with-param name="by" select="$by" />
-		    </xsl:call-template>
-		  </xsl:when>
-		  <xsl:otherwise>
-		    <xsl:value-of select="$text" />
-		  </xsl:otherwise>
+			<xsl:when test="contains($text, $replace)">
+				<xsl:value-of select="substring-before($text, $replace)"/>
+				<xsl:value-of select="$by"/>
+				<xsl:call-template name="replace">
+					<xsl:with-param name="text" select="substring-after($text, $replace)"/>
+					<xsl:with-param name="replace" select="$replace"/>
+					<xsl:with-param name="by" select="$by"/>
+				</xsl:call-template>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:value-of select="$text"/>
+			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:template>
-	
+
 	<xsl:template match="/">
 		<xsl:choose>
 			<xsl:when test="//DISS_collection">
-				<mods:modsCollection xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-6.xsd">
+				<mods:modsCollection xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+					xsi:schemaLocation="http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-6.xsd">
 					<xsl:for-each select="//DISS_collection/DISS_submission">
 						<mods:mods version="3.6">
 							<xsl:call-template name="DISS_submission"/>
@@ -50,43 +51,62 @@
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:template>
-	<!--AUTHOR INFORMATION: MODS:NAME-->
 	<xsl:template name="DISS_submission">
+
+		<!-- TITLE  MODS:TITLEINFO -->
+		<!-- TODO: Add code to Title Case the Title -->
+		<xsl:for-each select="DISS_description">
+			<mods:titleInfo>
+				<mods:title>
+					<xsl:value-of select="DISS_title"/>
+				</mods:title>
+			</mods:titleInfo>
+		</xsl:for-each>
+
+		<!-- AUTHOR INFORMATION: MODS:NAME -->
 		<xsl:for-each select="DISS_authorship">
 			<xsl:for-each select="DISS_author">
 				<xsl:for-each select="DISS_name">
 					<mods:name type="personal">
-						<mods:namePart type="given">
-							<xsl:value-of select="DISS_fname"/>
-						</mods:namePart>
-						<mods:namePart type="family">
-							<xsl:value-of select="DISS_surname"/>
-						</mods:namePart>
 						<mods:role>
-							<mods:roleTerm authority="marcrelator" type="text">Author</mods:roleTerm>
+							<mods:roleTerm authority="marcrelator" type="text"
+								>Author</mods:roleTerm>
 						</mods:role>
+						<mods:namePart>
+							<xsl:value-of select="DISS_surname"/>
+							<xsl:text>, </xsl:text>
+							<xsl:value-of select="DISS_fname"/>
+							<xsl:if test="DISS_middle/text()">
+								<xsl:text> </xsl:text>
+								<xsl:value-of select="DISS_middle"/>
+							</xsl:if>
+						</mods:namePart>
 						<xsl:for-each select="//DISS_description/DISS_institution">
 							<!-- start cleaning up the department -->
-							<xsl:variable name="deptStart" select="DISS_inst_contact" />
+							<xsl:variable name="deptStart" select="DISS_inst_contact"/>
 							<!-- remove everything after colon -->
 							<xsl:variable name="deptSansColon">
 								<xsl:choose>
-									<xsl:when test="contains($deptStart, ':')"><xsl:value-of select="substring-before($deptStart, ':')" /></xsl:when>
-									<xsl:otherwise><xsl:value-of select="$deptStart" /></xsl:otherwise>
+									<xsl:when test="contains($deptStart, ':')">
+										<xsl:value-of select="substring-before($deptStart, ':')"/>
+									</xsl:when>
+									<xsl:otherwise>
+										<xsl:value-of select="$deptStart"/>
+									</xsl:otherwise>
 								</xsl:choose>
 							</xsl:variable>
 							<!-- replace ampersands with the word 'and' -->
 							<xsl:variable name="deptExpandAmp">
 								<xsl:call-template name="replace">
-								  <xsl:with-param name="text" select="$deptSansColon" />
-								  <xsl:with-param name="replace" select="'&amp;'" />
-								  <xsl:with-param name="by" select="'and'" />
+									<xsl:with-param name="text" select="$deptSansColon"/>
+									<xsl:with-param name="replace" select="'&amp;'"/>
+									<xsl:with-param name="by" select="'and'"/>
 								</xsl:call-template>
 							</xsl:variable>
 							<!-- make sure the department is in the proquest vocabulary? -->
 							<!-- if its not, trim off any parenthetical text -->
 							<!-- if its still not, then replace it with University of North Carolina at Chapel Hill -->
-							
+
 							<mods:affiliation>
 								<xsl:value-of select="normalize-space($deptExpandAmp)"/>
 							</mods:affiliation>
@@ -95,14 +115,46 @@
 				</xsl:for-each>
 			</xsl:for-each>
 		</xsl:for-each>
-		<!--TITLE and ABSTRACT INFORMATION: MODS:TITLEINFO and MODS:ABSTRACT-->
+
+		<!-- Advisor and Committee Members -->
 		<xsl:for-each select="DISS_description">
-			<mods:titleInfo>
-				<mods:title>
-					<xsl:value-of select="DISS_title"/>
-				</mods:title>
-			</mods:titleInfo>
+			<xsl:for-each select="DISS_advisor/DISS_name">
+				<mods:name type="personal">
+					<mods:namePart>
+						<xsl:value-of select="DISS_surname"/>
+						<xsl:text>, </xsl:text>
+						<xsl:value-of select="DISS_fname"/>
+						<xsl:if test="DISS_middle/text()">
+							<xsl:text> </xsl:text>
+							<xsl:value-of select="DISS_middle"/>
+						</xsl:if>
+					</mods:namePart>
+					<mods:role>
+						<mods:roleTerm authority="marcrelator" type="text">Thesis
+							advisor</mods:roleTerm>
+					</mods:role>
+				</mods:name>
+			</xsl:for-each>
+			<xsl:for-each select="DISS_cmte_member/DISS_name">
+				<mods:name type="personal">
+					<mods:namePart>
+						<xsl:value-of select="DISS_surname"/>
+						<xsl:text>, </xsl:text>
+						<xsl:value-of select="DISS_fname"/>
+						<xsl:if test="DISS_middle/text()">
+							<xsl:text> </xsl:text>
+							<xsl:value-of select="DISS_middle"/>
+						</xsl:if>
+					</mods:namePart>
+					<mods:role>
+						<mods:roleTerm authority="marcrelator" type="text">Committee
+							member</mods:roleTerm>
+					</mods:role>
+				</mods:name>
+			</xsl:for-each>
 		</xsl:for-each>
+
+		<!-- ABSTRACT INFORMATION: MODS:ABSTRACT -->
 		<xsl:for-each select="DISS_content">
 			<xsl:for-each select="DISS_abstract">
 				<mods:abstract>
@@ -119,11 +171,14 @@
 						</mods:dateCreate>
 					</mods:originInfo>		
 		</xsl:for-each>-->
-		<mods:note type="thesis" displayLabel="Graduation Date"><xsl:value-of select="$graduationSemester"/></mods:note>
+		<mods:note type="thesis" displayLabel="Graduation Date">
+			<xsl:value-of select="$graduationSemester"/>
+		</mods:note>
 		<xsl:for-each select="/DISS_submission/DISS_description/DISS_dates/DISS_comp_date">
 			<mods:originInfo>
 				<mods:dateIssued encoding="iso8601">
-					<xsl:value-of select="/DISS_submission/DISS_description/DISS_dates/DISS_comp_date"/>
+					<xsl:value-of
+						select="/DISS_submission/DISS_description/DISS_dates/DISS_comp_date"/>
 				</mods:dateIssued>
 			</mods:originInfo>
 		</xsl:for-each>
@@ -139,32 +194,42 @@
 						</xsl:for-each>
 					</xsl:when>
 				</xsl:choose>
-				<mods:note displayLabel="Keywords">
-					<xsl:value-of select="DISS_keyword"/>
-				</mods:note>
+				<xsl:for-each select="DISS_keyword">
+					<xsl:for-each select="tokenize(., ',')">
+						<mods:note displayLabel="Keywords">
+							<xsl:value-of select="normalize-space(.)"/>
+						</mods:note>
+					</xsl:for-each>
+				</xsl:for-each>
 			</xsl:for-each>
 			<!-- LANGUAGE INFORMATION: MODS:LANGUAGE-->
 			<xsl:for-each select="DISS_categorization">
+				<xsl:for-each select="DISS_language">
+				<!-- TODO: Fix language conversion. Not working.  -->
 				<mods:language>
 					<mods:languageTerm type="code" authority="iso639-2b">
 						<xsl:call-template name="iso-639-1-converter"/>
 					</mods:languageTerm>
 				</mods:language>
+				</xsl:for-each>
 			</xsl:for-each>
 		</xsl:for-each>
 		<!-- ACADEMIC INFORMATION (DEGREE, DISCIPLINE and ADVISOR): MODS:NOTE, MODS:NAME-->
-		<xsl:variable name="normalizedDegree" select="translate(translate(/DISS_submission/DISS_description/DISS_degree, $uppercase, $smallcase), '.', '')"/>
+		<xsl:variable name="normalizedDegree"
+			select="translate(translate(/DISS_submission/DISS_description/DISS_degree, $uppercase, $smallcase), '.', '')"/>
 		<mods:note displayLabel="Degree">
 			<xsl:choose>
+				<xsl:when test="contains($normalizedDegree, 'dmin')">Doctor of Ministry</xsl:when>
 				<xsl:when test="contains($normalizedDegree, 'edd')">Doctor of Education</xsl:when>
 				<xsl:when test="contains($normalizedDegree, 'phd')">Doctor of Philosophy</xsl:when>
-				<xsl:when test="contains($normalizedDegree, 'dmin')">Doctor of Ministry</xsl:when>
 				<xsl:when test="contains($normalizedDegree, 'thm')">Master of Theology</xsl:when>
 			</xsl:choose>
 		</mods:note>
 		<mods:genre authority="local">
 			<xsl:choose>
-				<xsl:when test="contains($normalizedDegree, 'edd') or contains($normalizedDegree, 'phd')">Dissertation</xsl:when>
+				<xsl:when
+					test="contains($normalizedDegree, 'edd') or contains($normalizedDegree, 'phd')"
+					>Dissertation</xsl:when>
 				<xsl:when test="contains($normalizedDegree, 'dmin')">Ministry Project Report</xsl:when>
 				<xsl:otherwise>Thesis</xsl:otherwise>
 			</xsl:choose>
@@ -177,7 +242,8 @@
 							<xsl:value-of select="DISS_inst_name"/>
 						</mods:namePart>
 						<mods:role>
-							<mods:roleTerm authority="marcrelator" type="text">Degree granting institution</mods:roleTerm>
+							<mods:roleTerm authority="marcrelator" type="text">Degree granting
+								institution</mods:roleTerm>
 						</mods:role>
 					</mods:name>
 				</xsl:if>
@@ -190,34 +256,8 @@
 			<!--  06/16/2009  Alternate mapping for DISS_inst_contact via mods:extension. Bridget -->
 			<!--  <mods:extension xmlns:marc="http://www.loc.gov/MARC21/slim"><xsl:value-of select="/DISS_submission/DISS_description/DISS_institution/DISS_inst_contact"/></mods:extension>  -->
 			<!--04/10/2014 Took out mods:extension.  Don't use extension; too messy.  Sonoe-->
-			<xsl:for-each select="DISS_advisor/DISS_name">
-				<mods:name type="personal">
-					<mods:namePart type="given">
-						<xsl:value-of select="DISS_fname"/>
-					</mods:namePart>
-					<mods:namePart type="family">
-						<xsl:value-of select="DISS_surname"/>
-					</mods:namePart>
-					<mods:role>
-						<mods:roleTerm authority="marcrelator" type="text">Thesis advisor</mods:roleTerm>
-					</mods:role>
-				</mods:name>
-			</xsl:for-each>
-			<!--  01/10/2017 Section below controls Dissertation Committee Members. Uncomment add them back in. -->
-			<!-- <xsl:for-each select="DISS_cmte_member/DISS_name">
-				<mods:name type="personal">
-					<mods:namePart type="given">
-						<xsl:value-of select="DISS_fname"/>
-					</mods:namePart>
-					<mods:namePart type="family">
-						<xsl:value-of select="DISS_surname"/>
-					</mods:namePart>
-					<mods:role>
-						<mods:roleTerm authority="marcrelator" type="text">Thesis advisor</mods:roleTerm>
-					</mods:role>
-				</mods:name>
-			</xsl:for-each>
-		</xsl:for-each> -->
+
+		</xsl:for-each>
 		<!-- TYPE OF RESOURCE AND EXTENT: MODS:TYPE OF RESOURCE and MODS:PHYSICAL DESCRIPTION -->
 		<mods:typeOfResource>text</mods:typeOfResource>
 		<!--RESTRICTIONS AND ACCESS: MODS:ACCESSCONDITION-->
@@ -225,14 +265,20 @@
 04/10/2014 Modified mods:accessCondition.  Wasn't mapped to DISS elements, so remapped mapped to DISS_submission/@embargo_code.  Conditional statements for embargo codes 0 - 2.  Sonoe-->
 		<xsl:for-each select="//@embargo_code">
 			<xsl:choose>
-				<xsl:when test=".=1">
-					<mods:accessCondition displayLabel="Embargo" type="restrictionOnAccess">This item is restricted from public view for 6 months after publication.</mods:accessCondition>
+				<xsl:when test=". = 1">
+					<mods:accessCondition displayLabel="Embargo" type="restrictionOnAccess">This
+						item is restricted from public view for 6 months after
+						publication.</mods:accessCondition>
 				</xsl:when>
-				<xsl:when test=".=2">
-					<mods:accessCondition displayLabel="Embargo" type="restrictionOnAccess">This item is restricted from public view for 1 year after publication.</mods:accessCondition>
+				<xsl:when test=". = 2">
+					<mods:accessCondition displayLabel="Embargo" type="restrictionOnAccess">This
+						item is restricted from public view for 1 year after
+						publication.</mods:accessCondition>
 				</xsl:when>
-				<xsl:when test=".=3">
-					<mods:accessCondition displayLabel="Embargo" type="restrictionOnAccess">This item is restricted from public view for 2 years after publication.</mods:accessCondition>
+				<xsl:when test=". = 3">
+					<mods:accessCondition displayLabel="Embargo" type="restrictionOnAccess">This
+						item is restricted from public view for 2 years after
+						publication.</mods:accessCondition>
 				</xsl:when>
 			</xsl:choose>
 		</xsl:for-each>
